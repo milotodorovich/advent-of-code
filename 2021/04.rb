@@ -1,13 +1,3 @@
-inputFile = File.readlines(ARGV[0], chomp: true)
-
-# inputFile.each { |x| puts x }
-
-boardsCount = 0
-inputFile = File.readlines(ARGV[0], chomp: true)
-inputs = inputFile.shift.split(",").map(&:to_i)
-
-puts inputs
-
 class Element
 
     def initialize(value)
@@ -41,7 +31,6 @@ class Board
             rowData = row.split(" ").map(&:to_i)
             @elements << rowData.map { |i| Element.new(i)}
         end
-        puts "-"*15
     end
 
     def play(n) 
@@ -57,9 +46,11 @@ class Board
             row.all?(&:covered?)
         end.any? { |x| x==true }
 
-        colWinner = (0..4).to_a.each do |i|
-            @elements.map { |row| row[i] }.all?(&:covered?)
-        end.any?  { |x| x==true }
+        colWinner = (0..4).to_a.map do |i|
+            @elements.map { |row| row[i] }
+        end.map do |col|
+            col.all?(&:covered?)
+        end.any? { |x| x==true }
 
         return rowWinner || colWinner
     end
@@ -73,44 +64,38 @@ class Board
     end
 end
 
-inputFile = inputFile.select { |x| x.length > 0 }
-
-puts "Board rows: #{inputFile.size}"
+boardsCount = 0
+inputFile = File.readlines(ARGV[0], chomp: true).select { |x| x.length > 0 }
+inputs = inputFile.shift.split(",").map(&:to_i)
 
 boards = []
 while inputFile.length > 0
     boards << Board.new(inputFile.shift, inputFile.shift, inputFile.shift, inputFile.shift, inputFile.shift)
 end
 
-puts boards.size
-# boards.each { |b| puts b}
+while inputs.size > 0
+    n = inputs.shift
 
-# while inputs.size > 0
-#     n = inputs.shift
-#     # puts n
+    boards.each { |b| b.play(n) }
 
-#     boards.each { |b| b.play(n) }
-#     # pp boards
-#     # puts boards.map(&:winner?)
+    if boards.any?(&:winner?) 
+        puts "FIRST WINNER!"
+        pp winner = boards.select(&:winner?).first
+        puts sum = winner.uncoveredElements.map(&:value).sum
+        puts "Number: #{n}"
+        puts "Result: #{n*sum}"
+        break
+    end
 
-#     if boards.any?(&:winner?) 
-#         puts "FIRST WINNER!"
-#         pp winner = boards.select(&:winner?).first
-#         puts sum = winner.uncoveredElements.map(&:value).sum
-#         puts "Number: #{n}"
-#         puts "Result: #{n*sum}"
-#         break
-#     end
+end
 
-# end
+inputFile = File.readlines(ARGV[0], chomp: true).select { |x| x.length > 0 }
+inputs = inputFile.shift.split(",").map(&:to_i)
 
-# inputFile = File.readlines(ARGV[0], chomp: true)
-# inputs = inputFile.shift.split(",").map(&:to_i)
-
-# boards = []
-# while inputFile.length > 0
-#     boards << Board.new(inputFile.shift, inputFile.shift, inputFile.shift, inputFile.shift, inputFile.shift)
-# end
+boards = []
+while inputFile.length > 0
+    boards << Board.new(inputFile.shift, inputFile.shift, inputFile.shift, inputFile.shift, inputFile.shift)
+end
 lastWinner = nil
 
 while inputs.size > 0
