@@ -1,9 +1,9 @@
 # setup array of arrays datastructure, default 0
+debug = false
 size = 1000
 field = Array.new(size) { Array.new(size) { 0 } }
 
-
-# pp field
+pp field if debug
 
 inputs = "35,968 -> 974,29
 198,552 -> 124,478
@@ -506,7 +506,7 @@ inputs = "35,968 -> 974,29
 707,579 -> 163,35
 330,313 -> 151,313".split("\n")
 
-# pp inputs
+pp inputs if debug
 
 points = inputs.map do |line|
     p1, p2 = line.split(" -> ")
@@ -524,26 +524,21 @@ end
 
 # iterate over inputs to fill array
 points.each do |point|
+    minX = [point[0], point[2]].min
+    minY = [point[1], point[3]].min
+    maxX = [point[0], point[2]].max
+    maxY = [point[1], point[3]].max
+
     if point[0] == point[2] || point[1] == point[3] 
-        ([point[0], point[2]].min..[point[0],point[2]].max).each do |x|
-            ([point[1],point[3]].min..[point[1],point[3]].max).each do |y|
-                # puts "x: #{x} y: #{y}"
+        (minX..maxX).each do |x|
+            (minY..maxY).each do |y|
+                puts "x: #{x} y: #{y}" if debug
                 field[y][x] += 1
             end
         end 
     else
         # diagonal
-        minX = [point[0], point[2]].min
-        minY = [point[1], point[3]].min
-        maxX = [point[0], point[2]].max
-        maxY = [point[1], point[3]].max
         num  = maxX - minX + 1
-
-        # not 45'?
-        if (num != (maxY - minY + 1))
-            puts "FAIL!!!"
-            exit
-        end
 
         xs = (minX..maxX).to_a
         ys = (minY..maxY).to_a
@@ -556,16 +551,11 @@ points.each do |point|
             field[y][x] += 1
         end
 
-        # pp xs, ys
-
     end
     
 end
 
-# pp field
-
+# iterate over arrays to count > 1
 count = field.flatten.select { |x| x > 1 }.count
 
 puts "Count: #{count}"
-
-# iterate over arrays to count > 1
