@@ -1,9 +1,5 @@
 # setup array of arrays datastructure, default 0
 debug = false
-size = 1000
-field = Array.new(size) { Array.new(size) { 0 } }
-
-pp field if debug
 
 inputs = "35,968 -> 974,29
 198,552 -> 124,478
@@ -508,54 +504,82 @@ inputs = "35,968 -> 974,29
 
 pp inputs if debug
 
-points = inputs.map do |line|
+class Grid
+    def initialize
+        size = 1000
+        @field = Array.new(size) { Array.new(size) { 0 } }
+    end
+
+    def increment(x, y) 
+        @field[y][x] += 1
+    end
+
+    def count
+        @field.flatten.select { |x| x > 1 }.count
+    end
+end
+
+
+class Segment
+    def initialize(x1, y1, x2, y2)
+        @x1 = x1
+        @y1 = y1
+        @x2 = x2
+        @y2 = y2
+    end
+
+    def points
+        if vertical || horizontal
+            xRange.product(yRange)
+        else
+            xRange.zip(yRange)
+        end
+    end
+
+    def xRange
+        minX, maxX = [@x1, @x2].minmax
+        xR = (minX..maxX).to_a
+        xR = xR.reverse if going_left
+        xR
+    end
+
+    def yRange
+        minY, maxY = [@y1, @y2].minmax
+        yR = (minY..maxY).to_a
+        yR = yR.reverse if going_down
+        yR
+    end
+
+    def vertical
+        @x1 == @x2
+    end
+
+    def horizontal
+        @y1 == @y2
+    end
+
+    def going_left
+        @x2 < @x1
+    end
+
+    def going_down
+        @y2 < @y1
+    end
+end
+
+grid = Grid.new
+
+segments = inputs.map do |line|
     p1, p2 = line.split(" -> ")
     x1, y1 = p1.split(",").map(&:to_i)
     x2, y2 = p2.split(",").map(&:to_i)
-    [x1, y1, x2, y2]
+    Segment.new(x1, y1, x2, y2)
 end
 
-# filter vertical and horizontal
-# filtered_points = points.select do |point|
-#     point[0] == point[2] || point[1] == point[3]
-# end
-
-# pp filtered_points
-
-# iterate over inputs to fill array
-points.each do |point|
-    minX = [point[0], point[2]].min
-    minY = [point[1], point[3]].min
-    maxX = [point[0], point[2]].max
-    maxY = [point[1], point[3]].max
-
-    if point[0] == point[2] || point[1] == point[3] 
-        (minX..maxX).each do |x|
-            (minY..maxY).each do |y|
-                puts "x: #{x} y: #{y}" if debug
-                field[y][x] += 1
-            end
-        end 
-    else
-        # diagonal
-        num  = maxX - minX + 1
-
-        xs = (minX..maxX).to_a
-        ys = (minY..maxY).to_a
-
-        xs = xs.reverse if point[2] < point[0]
-        ys = ys.reverse if point[3] < point[1]
-
-        xs.each_with_index do |x, i|
-            y = ys[i]
-            field[y][x] += 1
-        end
-
-    end
-    
+segments.each do |seg|
+    seg.points.each { |x, y| grid.increment(x, y) }
 end
 
-# iterate over arrays to count > 1
-count = field.flatten.select { |x| x > 1 }.count
+puts "Count: #{grid.count}"
 
-puts "Count: #{count}"
+puts "FAIL!" unless grid.count == 21373
